@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dataset Foundry</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2em;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+        form {
+            margin-bottom: 2em;
+            background-color: white;
+            padding: 1em;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+            width: 50%;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        nav a {
+            margin: 0 0.5em;
+            color: #007BFF;
+            text-decoration: none;
+        }
+        input[type="submit"] {
+            background-color: #007BFF;
+            color: white;
+            padding: 0.5em;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 1em;
+        }
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+        .output {
+            margin-top: 1em;
+            white-space: pre-wrap;
+        }
+        .slider {
+            display: flex;
+            align-items: center;
+        }
+        .slider input[type="range"] {
+            flex-grow: 1;
+            margin-left: 0.5em;
+        }
+        .slider-value {
+            margin-left: 0.5em;
+            font-weight: bold;
+        }
+        .download-link {
+            margin-top: 1em;
+            display: flex;
+            align-items: center;
+        }
+        .download-link a {
+            margin-left: 0.5em;
+        }
+    </style>
+</head>
+<body>
+    <h1>Dataset Foundry</h1>
+    <nav>
+        <a href="/foundry">Foundry</a> |
+        <a href="/pricing_estimate">Pricing Estimate</a> |
+        <a href="/formatting">Formatting</a>
+    </nav>
+    <hr>
+
+    <h2>Foundry</h2>
+    <form id="foundry-form" action="/run_foundry" method="POST" enctype="multipart/form-data">
+        <label for="foundry_file">Choose a dataset:</label>
+        <input type="file" id="foundry_file" name="file">
+        <input type="submit" value="Run Foundry">
+        <div class="output" id="foundry-output"></div>
+        <div class="download-link">
+            <a id="foundry-download-link" href="" download></a>
+        </div>
+    </form>
+
+    <h2>Pricing Estimate</h2>
+    <form id="count-tokens-form" action="/count_tokens" method="POST" enctype="multipart/form-data">
+        <label for="token_file">Choose a text file:</label>
+        <input type="file" id="token_file" name="file">
+        <input type="submit" value="Count Tokens">
+        <div class="output" id="count-tokens-output"></div>
+    </form>
+
+    <form id="calculate-cost-form" action="/calculate_cost" method="POST">
+        <label for="version">API Version:</label>
+        <select id="version" name="version">
+            <option value="gpt3.5t">GPT-3.5 Turbo</option>
+            <option value="gpt4">GPT-4</option>
+        </select>
+        <label for="tokens">Tokens:</label>
+        <input type="number" id="tokens" name="tokens" min="1">
+        <div class="slider">
+            <label for="factor">Factor:</label>
+            <input type="range" id="factor" name="factor" min="1" max="5" value="3" step="1">
+            <span class="slider-value" id="factor-value">3</span>
+        </div>
+        <input type="submit" value="Calculate Cost">
+        <div class="output" id="calculate-cost-output"></div>
+    </form>
+
+    <h2>Formatting</h2>
+    <form id="format-dataset-form" action="/format_dataset" method="POST" enctype="multipart/form-data">
+        <label for="format_file">Choose an Alpaca format dataset:</label>
+        <input type="file" id="format_file" name="file">
+        <label for="delete-sections">Delete sections:</label>
+        <input type="checkbox" id="delete-sections" name="delete_sections">
+        <label for="phrases">Phrases to remove:</label>
+        <input type="text" id="phrases" name="phrases">
+        <input type="submit" value="Format Dataset">
+        <div class="output" id="format-dataset-output"></div>
+        <div class="download-link">
+            <a id="format-dataset-download-link" href="" download></a>
+        </div>
+    </form>
+
+    <script>
+        const foundryForm = document.getElementById('foundry-form');
+        const foundryOutput = document.getElementById('foundry-output');
+        const foundryDownloadLink = document.getElementById('foundry-download-link');
+
+        foundryForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new FormData(foundryForm);
+            fetch('/run_foundry', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(output => {
+                foundryOutput.textContent = output;
+            })
+            .catch(error => console.error(error));
+        });
+
+        const countTokensForm = document.getElementById('count-tokens-form');
+        const countTokensOutput = document.getElementById('count-tokens-output');
+
+        countTokensForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new FormData(countTokensForm);
+            fetch('/count_tokens', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(output => {
+                countTokensOutput.textContent = output;
+            })
+            .catch(error => console.error(error));
+        });
+
+        const calculateCostForm = document.getElementById('calculate-cost-form');
+        const calculateCostOutput = document.getElementById('calculate-cost-output');
+        const factorValue = document.getElementById('factor-value');
+        const factorSlider = document.getElementById('factor');
+
+        calculateCostForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new FormData(calculateCostForm);
+            fetch('/calculate_cost', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(output => {
+                calculateCostOutput.textContent = output;
+            })
+            .catch(error => console.error(error));
+        });
+
+        factorSlider.addEventListener('input', () => {
+            factorValue.textContent = factorSlider.value;
+        });
+
+        const formatDatasetForm = document.getElementById('format-dataset-form');
+        const formatDatasetOutput = document.getElementById('format-dataset-output');
+        const formatDatasetDownloadLink = document.getElementById('format-dataset-download-link');
+
+        formatDatasetForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new FormData(formatDatasetForm);
+            fetch('/format_dataset', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(output => {
+                formatDatasetOutput.textContent = output;
+            })
+            .catch(error => console.error(error));
+        });
+
+        formatDatasetForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new FormData(formatDatasetForm);
+            fetch('/format_dataset', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                formatDatasetOutput.textContent = JSON.stringify(data, null, 2);
+                const file = new Blob([JSON.stringify(data)], { type: 'application/json' });
+                const url = URL.createObjectURL(file);
+                formatDatasetDownloadLink.href = url;
+                formatDatasetDownloadLink.download = 'formatted_dataset.json';
+            })
+            .catch(error => console.error(error));
+        });
+
+        const deleteSectionsCheckbox = document.getElementById('delete-sections');
+        const phrasesInput = document.getElementById('phrases');
+
+        deleteSectionsCheckbox.addEventListener('change', () => {
+            phrasesInput.disabled = deleteSectionsCheckbox.checked;
+        });
+    </script>
+</body>
+</html>
