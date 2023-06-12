@@ -1,5 +1,5 @@
 # Dataset-Foundry
-Create Alpaca Formated Datasets to train LLM, get price estimates, format your dataset. HUGE WIP
+Create Alpaca Formated Datasets to train LLM, get price estimates, format your dataset, use techniques such as the ones used by Microsoft in Orca 13B. HUGE WIP
 
 In order to run change Upload folder direrctory in line 10 of your Main.py
 
